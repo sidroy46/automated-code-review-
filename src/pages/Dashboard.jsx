@@ -75,7 +75,11 @@ function calculateFactorial(n) {
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.error || err.message || 'Server error. Please try again.');
+      const serverError = err.response?.data?.error;
+      const errorMessage = typeof serverError === 'object' && serverError !== null
+        ? (serverError.message || JSON.stringify(serverError))
+        : (serverError || err.message || 'Server error. Please try again.');
+      setError(errorMessage);
       triggerToast('AI Review failed. Check error details.', 'error');
     } finally {
       setIsLoading(false);

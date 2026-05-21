@@ -147,7 +147,9 @@ export default function RightPanel({
           <AlertCircle className="w-8 h-8" />
         </div>
         <h4 className="text-slate-200 font-display font-bold text-base">Analysis Failed</h4>
-        <p className="text-red-400/90 text-xs max-w-sm mt-2">{error}</p>
+        <p className="text-red-400/90 text-xs max-w-sm mt-2">
+          {typeof error === 'object' ? (error.message || JSON.stringify(error)) : error}
+        </p>
         <button 
           onClick={() => window.location.reload()}
           className="mt-4 bg-white/[0.04] border border-white/10 hover:border-white/20 text-xs px-4 py-2 rounded-xl text-slate-300 transition-colors"
