@@ -3,14 +3,24 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const apiKey = process.env.GROQ_API_KEY;
-if (!apiKey) {
-  console.warn('Warning: GROQ_API_KEY is not defined in environment variables.');
-}
+let groqClient = null;
 
-const groq = new Groq({ apiKey });
+// Instantiate the Groq client lazily inside a helper function.
+// This prevents module import crash if GROQ_API_KEY environment variable is not defined.
+const getGroqClient = () => {
+  if (!groqClient) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error('GROQ_API_KEY is missing or empty. Please check your Vercel Dashboard Environment Variables.');
+    }
+    groqClient = new Groq({ apiKey });
+  }
+  return groqClient;
+};
 
 export const getCodeReview = async (code, language, mode, explanationLanguage) => {
+  const client = getGroqClient();
+
   const prompt = `
   You are an expert AI code reviewer. Review the following code snippet:
   Language: ${language}
@@ -51,7 +61,7 @@ export const getCodeReview = async (code, language, mode, explanationLanguage) =
   }
   `;
 
-  const chatCompletion = await groq.chat.completions.create({
+  const chatCompletion = await client.chat.completions.create({
     messages: [
       {
         role: 'user',
@@ -67,6 +77,8 @@ export const getCodeReview = async (code, language, mode, explanationLanguage) =
 };
 
 export const getChatResponse = async (codeContext, question, history) => {
+  const client = getGroqClient();
+
   const messages = [
     {
       role: 'system',
@@ -79,7 +91,7 @@ export const getChatResponse = async (codeContext, question, history) => {
     },
   ];
 
-  const chatCompletion = await groq.chat.completions.create({
+  const chatCompletion = await client.chat.completions.create({
     messages,
     model: 'llama-3.3-70b-versatile',
   });
